@@ -11,32 +11,39 @@ import java.nio.file.Paths;
 
 /**
  * Lee la topología de una red desde un archivo de texto y la agrega a un
- * {@link GrafoRed}. Cada línea de conexión debe tener el formato:
- * 
+ * {@link GrafoRed}. El formato esperado es:
+ *
  * <pre>
- * origen,destino,peso
+ * ORIGEN: CPU-0
+ * CPU-0 CPU-1 5
+ * CPU-1 CPU-2 3
+ * CPU-2 CPU-3 8
+ * CPU-3
  * </pre>
- * 
- * También se aceptan líneas separadas por espacios, punto y coma o tabuladores.
- * Las líneas que comienzan con # o // y las líneas vacías se ignoran.
+ *
+ * Las líneas con tres datos representan aristas; las líneas con un dato
+ * representan nodos aislados. Las líneas que comienzan con # o // se ignoran.
  */
 public class LectorRed {
 
     private GrafoRed grafo;
+    private String origen;
 
     public LectorRed() {
         this.grafo = null;
+        this.origen = null;
     }
 
     public LectorRed(GrafoRed grafo) {
         this.grafo = grafo;
+        this.origen = null;
     }
 
     /**
-     * Lee un archivo y agrega sus aristas al grafo indicado.
+     * Lee un archivo y agrega sus vértices y aristas al grafo indicado.
      *
      * @param rutaArchivo ruta del archivo de texto
-     * @param grafo       grafo al que se agregaran las aristas
+     * @param grafo       grafo al que se agregarán los vértices y aristas
      * @return el mismo grafo recibido
      * @throws IOException si no puede leer el archivo
      */
@@ -49,6 +56,7 @@ public class LectorRed {
         }
 
         this.grafo = grafo;
+        this.origen = null;
         Path ruta = Paths.get(rutaArchivo.trim());
 
         try (BufferedReader lector = Files.newBufferedReader(ruta, StandardCharsets.UTF_8)) {
@@ -63,34 +71,50 @@ public class LectorRed {
                     continue;
                 }
 
-                // Permite comentarios al final de una línea.
                 int comentario = linea.indexOf('#');
                 if (comentario >= 0) {
                     linea = linea.substring(0, comentario).trim();
                 }
 
-                // Sustituir separadores comunes por espacios.
+                if (linea.isEmpty()) {
+                    continue;
+                }
+
+                if (linea.matches("(?i)^ORIGEN\\s*:.*$")) {
+                    String idOrigen = linea.replaceFirst("(?i)^ORIGEN\\s*:\\s*", "").trim();
+
+                    if (idOrigen.isEmpty()) {
+                        throw new IllegalArgumentException(
+                                "Línea " + numeroLinea + " inválida: falta el identificador del origen.");
+                    }
+
+                    origen = idOrigen;
+                    grafo.agregarVertice(idOrigen);
+                    continue;
+                }
+
                 linea = linea.replace(',', ' ')
                         .replace(';', ' ')
                         .replace('|', ' ')
                         .replace('\t', ' ');
 
-                if (linea.isEmpty()) {
+                String[] partes = linea.trim().split("\\s+");
+
+                if (partes.length == 1) {
+                    grafo.agregarVertice(partes[0]);
                     continue;
                 }
 
-                String[] partes = linea.trim().split("\\s+");
-
                 if (partes.length != 3) {
                     throw new IllegalArgumentException(
-                            "Línea " + numeroLinea + " inválida: se esperaba origen destino peso. "
-                                    + "Contenido: '" + linea + "'");
+                            "Línea " + numeroLinea + " inválida: se esperaba 'origen destino peso' "
+                                    + "o un solo identificador de nodo. Contenido: '" + linea + "'");
                 }
 
-                String origen = partes[0];
+                String origenArista = partes[0];
                 String destino = partes[1];
 
-                if (origen.isEmpty() || destino.isEmpty()) {
+                if (origenArista.isEmpty() || destino.isEmpty()) {
                     throw new IllegalArgumentException(
                             "Línea " + numeroLinea + " inválida: origen y destino no pueden estar vacíos.");
                 }
@@ -108,7 +132,7 @@ public class LectorRed {
                             "Línea " + numeroLinea + " inválida: el peso no puede ser negativo.");
                 }
 
-                grafo.agregarArista(origen, destino, peso);
+                grafo.agregarArista(origenArista, destino, peso);
             }
         }
 
@@ -123,15 +147,10 @@ public class LectorRed {
         return leerArchivo(rutaArchivo, grafo);
     }
 
-    /**
-     * Sobrecarga alternativa útil si se desea mantener esta clase ligada a un
-     * grafo.
-     */
     public GrafoRed leerArchivo(GrafoRed grafo, String rutaArchivo) throws IOException {
         return leerArchivo(rutaArchivo, grafo);
     }
 
-    /** Nombre corto para cargar el archivo. */
     public GrafoRed cargar(String rutaArchivo, GrafoRed grafo) throws IOException {
         return leerArchivo(rutaArchivo, grafo);
     }
@@ -142,5 +161,10 @@ public class LectorRed {
 
     public GrafoRed getGrafo() {
         return grafo;
+    }
+
+    /** Retorna el nodo indicado en la línea ORIGEN. */
+    public String getOrigen() {
+        return origen;
     }
 }
