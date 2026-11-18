@@ -1,43 +1,45 @@
+
 package RoundRobin.Controlador;
 
+import RoundRobin.Estructuras.GrafoRed;
 import RoundRobin.Estructuras.ListaCircular;
+import RoundRobin.Logica.LectorRed;
 import RoundRobin.Logica.PlanificadorRR;
 import RoundRobin.Modelo.Proceso;
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
  * Punto de entrada del programa.
  *
- * Esta clase exclusivamente gestiona la interacción con el algoritmo, mediante
- * un menú de consola simple. Por consiguiente, no interviene directamente con
- * la lógica de planificación ni de las estructuras de datos; su único rol es
- * leer entradas, invocar las clases correspondientes y mostrar los resultados.
+ * Esta clase gestiona la interacción con el usuario mediante
+ * un menú de consola.
  *
- * Flujo del programa:
- * - Los procesos son agregados.
- * - Se puede consultar la lista de procesos registrados para confirmar.
- * - Al elegir la opción de iniciar la simulación, el programa solicita ingresar el
- *  quantum. De esta menera, el planificador se ejecuta.
- * - Al finalizar, se muestran las estadisticas y el programa regresa al menú inicial.
+ * Permite:
+ * - Agregar procesos.
+ * - Consultar los procesos registrados.
+ * - Ejecutar la simulación Round Robin.
+ * - Acceder al menú de algoritmos del grafo.
+ * - Salir del programa.
  *
  * @author
  */
 public class Principal {
 
-    /** Leer los datos ingresados por el usuario durante toda la sesión. */
+    /** Scanner para leer los datos ingresados por el usuario. */
     private static Scanner scanner = new Scanner(System.in);
 
-    /** Lista circular cuya función es acumular los procesos registrados por el usuario. */
+    /** Lista circular de procesos registrados. */
     private static ListaCircular lista = new ListaCircular();
 
-    /** Contador auto-incremental que asigna identificadores únicos a cada proceso. */
+    /** Contador automático de identificadores de procesos. */
     private static int contadorId = 1;
 
-    // Punto de partida
     /**
-     * Método principal. Muestra el menú y redirige al usuario, de acuerdo a su elección.
+     * Método principal que inicia el programa.
      */
     public static void main(String[] args) {
+
         System.out.println(" ___________________________________________");
         System.out.println("|            SIMULADOR ROUND ROBIN          |");
         System.out.println("|___________________________________________|");
@@ -45,139 +47,216 @@ public class Principal {
         int opcion;
 
         do {
+
             mostrarMenu();
+
             opcion = leerEnteroPositivo("Seleccione una opcion: ");
 
             switch (opcion) {
+
                 case 1:
                     agregarProceso();
                     break;
+
                 case 2:
                     verProcesos();
                     break;
+
                 case 3:
                     iniciarSimulacion();
                     break;
+
                 case 4:
+                    abrirMenuGrafo();
+                    break;
+
+                case 5:
                     System.out.println("\n  Operacion finalizada.\n");
                     break;
+
                 default:
-                    System.out.println("\n  La opcion no es valida. Por favor, intente de nuevo.\n");
+                    System.out.println(
+                        "\n  La opcion no es valida. Por favor, intente de nuevo.\n"
+                    );
             }
 
-        } while (opcion != 4);
+        } while (opcion != 5);
 
     }
 
-    // Opciones del menú
     /**
-     * Muestra el menu principal en la consola
+     * Muestra las opciones del menú principal.
      */
     private static void mostrarMenu() {
+
         System.out.println("\n----------------------------------------");
         System.out.println("  MENU PRINCIPAL");
         System.out.println("----------------------------------------");
         System.out.println("  1. Agregar proceso");
         System.out.println("  2. Ver procesos registrados");
         System.out.println("  3. Iniciar simulacion");
-        System.out.println("  4. Salir");
+        System.out.println("  4. Menu de la red de CPUs");
+        System.out.println("  5. Salir");
         System.out.println("----------------------------------------");
     }
 
     /**
-     * Solicita al usuario los datos de un nuevo proceso y posteriormente lo agrega a la lista.
-     *
-     * El ID se asigna automáticamente. Por ello, el usuario solamente debe ingresar
-     * el nombre del proceso y el tiempo total de CPU que requiere.
+     * Solicita los datos de un nuevo proceso y lo agrega
+     * a la lista circular.
      */
     private static void agregarProceso() {
+
         System.out.println("\n--- AGREGAR PROCESO ---");
 
-        // registrar el nombre del proceso
         System.out.print("  Ingrese el nombre del proceso: ");
         String nombre = scanner.nextLine().trim();
 
         if (nombre.isEmpty()) {
-            System.out.println("  El nombre no puede estar vacio. El proceso no fue agregado.");
+
+            System.out.println(
+                "  El nombre no puede estar vacio. El proceso no fue agregado."
+            );
+
             return;
         }
 
-        // registrar el tiempo total con validación
-        int tiempoTotal = leerEnteroPositivo("  Tiempo total de CPU (ms): ");
+        int tiempoTotal = leerEnteroPositivo(
+            "  Tiempo total de CPU (ms): "
+        );
 
-        // crear el proceso y agregarlo a la lista circular
-        Proceso proceso = new Proceso(contadorId, nombre, tiempoTotal);
+        Proceso proceso = new Proceso(
+            contadorId,
+            nombre,
+            tiempoTotal
+        );
+
         lista.agregar(proceso);
         contadorId++;
 
-        System.out.println("  Proceso agregado exitosamente: " + proceso);
+        System.out.println(
+            "  Proceso agregado exitosamente: " + proceso
+        );
     }
 
     /**
-     * Muestra todos los procesos registrados actualmente en la lista circular.
+     * Muestra los procesos registrados actualmente.
      */
     private static void verProcesos() {
+
         System.out.println("\n--- PROCESOS REGISTRADOS ---");
+
         lista.mostrar();
     }
 
     /**
-     * Solicita el quantum al usuario e inicia la simulación.
-     *
-     * Garantiza que haya al menos un proceso registrado antes de ejecutar.
-     * Crea un nuevo planificador con la lista actual y el quantum ingresado, y
-     * luego reinicia la lista para habilitar una nueva simulación en la misma
-     * sesión en caso de ser necesario.
+     * Inicia la simulación Round Robin.
      */
     private static void iniciarSimulacion() {
+
         System.out.println("\n--- INICIAR SIMULACION ---");
 
-        // confirmar que haya procesos registrados
         if (lista.estaVacia()) {
-            System.out.println("  No hay procesos registrados. Debe agregar al menos uno.");
+
+            System.out.println(
+                "  No hay procesos registrados. Debe agregar al menos uno."
+            );
+
             return;
         }
 
-        // solicitar quantum al usuario
-        int quantum = leerEnteroPositivo("  Ingrese el quantum (ms): ");
+        int quantum = leerEnteroPositivo(
+            "  Ingrese el quantum (ms): "
+        );
 
-        // crear y ejecutar el planificador
-        PlanificadorRR planificador = new PlanificadorRR(lista, quantum);
+        PlanificadorRR planificador = new PlanificadorRR(
+            lista,
+            quantum
+        );
+
         planificador.ejecutar();
 
-        // reiniciar la lista y el contador para una nueva sesión si el usuario lo desea
+        // Reiniciar la lista después de finalizar la simulación.
         lista = new ListaCircular();
         contadorId = 1;
-        System.out.println("  Lista reiniciada. Ahora, puede agregar nuevos procesos y empezar una nueva simulacion.");
+
+        System.out.println(
+            "  Lista reiniciada. Ahora puede agregar nuevos procesos."
+        );
     }
 
-    // Utilidades de entradas del usuario
     /**
-     * Lee un entero positivo. Si el usuario ingresa un valor negativo, cero
-     * o no numérico, el programa le pedirá reintentar.
+     * Abre el menú de algoritmos del grafo.
      *
-     * Este método centraliza la validación de entradas numéricas con el fin de evitar
-     * repetir lógica de manejo de excepciones en cada punto del menú.
+     * TEMPORALMENTE utiliza una red de prueba creada desde código.
      *
-     * @param mensaje -> texto que se muestra al usuario antes de leer
+     * Cuando se implemente LectorRed.java, este método se modificará
+     * para cargar los vértices y conexiones desde el archivo TXT.
+     */
+        private static void abrirMenuGrafo() {
+        System.out.println("\n--- RED DE CPUs ---");
+
+        GrafoRed grafo = new GrafoRed();
+        LectorRed lector = new LectorRed();
+
+        try {
+            lector.leerArchivo("red.txt", grafo);
+
+            if (grafo.estaVacio()) {
+                System.out.println("El archivo no contiene conexiones.");
+                return;
+            }
+
+            System.out.println("\nRed cargada correctamente:");
+            grafo.imprimirListaAdyacencia();
+
+            MenuGrafo menu = new MenuGrafo(grafo, scanner);
+            menu.mostrarMenu();
+
+        } catch (IOException | IllegalArgumentException e) {
+            System.out.println("No fue posible cargar la red: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lee un número entero positivo.
      *
-     * @return entero positivo ingresado por el usuario
+     * Si el usuario ingresa un valor incorrecto,
+     * solicita nuevamente la entrada.
+     *
+     * @param mensaje texto que se muestra al usuario.
+     * @return número entero positivo.
      */
     private static int leerEnteroPositivo(String mensaje) {
+
         int valor = 0;
 
         while (valor <= 0) {
+
             System.out.print(mensaje);
+
             try {
-                valor = Integer.parseInt(scanner.nextLine().trim());
+
+                valor = Integer.parseInt(
+                    scanner.nextLine().trim()
+                );
+
                 if (valor <= 0) {
-                    System.out.println("  El valor debe ser mayor que cero. Por favor, intente de nuevo.");
+
+                    System.out.println(
+                        "  El valor debe ser mayor que cero. Intente nuevamente."
+                    );
                 }
+
             } catch (NumberFormatException e) {
-                System.out.println("  La entrada no es valida. Debe Ingresarr un numero entero positivo.");
+
+                System.out.println(
+                    "  La entrada no es valida. Debe ingresar un numero entero positivo."
+                );
+
             }
         }
 
         return valor;
     }
+
 }

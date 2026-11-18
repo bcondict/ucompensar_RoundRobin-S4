@@ -1,5 +1,4 @@
 package RoundRobin.Estructuras;
-
 import RoundRobin.Modelo.NodoCPU;
 import java.util.*;
 
@@ -307,10 +306,26 @@ public class GrafoRed {
             System.out.println("  Nodos de grado 1    : " + nodosGrado1 + " (puntos de falla)");
         }
 
-        // verificar conexidad con BFS interno
-        boolean esConexo = esConexo();
-        System.out.println("  Red conexa          : " + (esConexo ? "SI" : "NO — hay nucleos aislados"));
+        
+        // Verificar conexidad y contar componentes
+        if (vertices.isEmpty()) {
+
+            System.out.println("  La red no tiene vertices.");
+
+        } else {
+
+            boolean conexo = esConexo();
+            int cantidadComponentes = contarComponentesConexas();
+
+            System.out.println("  Red conexa          : "
+                    + (conexo ? "SI" : "NO"));
+
+            System.out.println("  Componentes conexas : "
+                    + cantidadComponentes);
+        }
+
         System.out.println("  " + "─".repeat(45));
+
     }
 
     /**
@@ -344,6 +359,58 @@ public class GrafoRed {
 
         return visitados.size() == vertices.size();
     }
+
+
+/**
+ * Cuenta la cantidad de componentes conexas de la red.
+ * Un componente conexo es un grupo de CPUs que pueden comunicarse entre sí.
+ *
+ * Se utiliza BFS para recorrer cada componente.
+ *
+ * @return cantidad de componentes conexas.
+ */
+public int contarComponentesConexas() {
+
+    Set<String> visitados = new HashSet<>();
+    int componentes = 0;
+
+    // Revisa todos los vertices de la red
+    for (String id : vertices.keySet()) {
+
+        // Si el vertice no ha sido visitado,
+        // encontramos un nuevo componente.
+        if (!visitados.contains(id)) {
+
+            componentes++;
+
+            Queue<String> cola = new LinkedList<>();
+
+            // Inicia BFS desde este vertice
+            visitados.add(id);
+            cola.add(id);
+
+            while (!cola.isEmpty()) {
+
+                String actual = cola.poll();
+
+                // Revisa los vecinos del vertice actual
+                for (Arista arista : adyacencia.get(actual)) {
+
+                    String vecino = arista.getDestino();
+
+                    if (!visitados.contains(vecino)) {
+
+                        visitados.add(vecino);
+                        cola.add(vecino);
+                    }
+                }
+            }
+        }
+    }
+
+    return componentes;
+}
+
 
     // R6 — Dijkstra
     /**
