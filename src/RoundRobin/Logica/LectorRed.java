@@ -14,6 +14,7 @@ import java.nio.file.Paths;
  * {@link GrafoRed}. El formato esperado es:
  *
  * <pre>
+ * TIPO: no-dirigido ponderado
  * ORIGEN: CPU-0
  * CPU-0 CPU-1 5
  * CPU-1 CPU-2 3
@@ -28,15 +29,18 @@ public class LectorRed {
 
     private GrafoRed grafo;
     private String origen;
+    private String tipo;
 
     public LectorRed() {
         this.grafo = null;
         this.origen = null;
+        this.tipo = null;
     }
 
     public LectorRed(GrafoRed grafo) {
         this.grafo = grafo;
         this.origen = null;
+        this.tipo = null;
     }
 
     /**
@@ -57,6 +61,7 @@ public class LectorRed {
 
         this.grafo = grafo;
         this.origen = null;
+        this.tipo = null;
         Path ruta = Paths.get(rutaArchivo.trim());
 
         try (BufferedReader lector = Files.newBufferedReader(ruta, StandardCharsets.UTF_8)) {
@@ -90,6 +95,18 @@ public class LectorRed {
 
                     origen = idOrigen;
                     grafo.agregarVertice(idOrigen);
+                    continue;
+                }
+
+                if (linea.matches("(?i)^TIPO\\s*:.*$")) {
+                    String tipoRed = linea.replaceFirst("(?i)^TIPO\\s*:\\s*", "").trim();
+
+                    if (tipoRed.isEmpty()) {
+                        throw new IllegalArgumentException(
+                                "Línea " + numeroLinea + " inválida: falta el tipo de la red.");
+                    }
+
+                    tipo = tipoRed;
                     continue;
                 }
 
@@ -166,5 +183,10 @@ public class LectorRed {
     /** Retorna el nodo indicado en la línea ORIGEN. */
     public String getOrigen() {
         return origen;
+    }
+
+    /** Retorna el tipo de la red indicado en la línea TIPO. */
+    public String getTipo() {
+        return tipo;
     }
 }
