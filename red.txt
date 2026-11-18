@@ -1,0 +1,28 @@
+
+# Vertices: 11
+# Aristas: 20
+# Peso: latencia en milisegundos
+
+TIPO: no-dirigido ponderado
+ORIGEN: CPU-A
+
+CPU-A CPU-B 4
+CPU-A CPU-C 2
+CPU-A CPU-D 7
+CPU-B CPU-C 1
+CPU-B CPU-E 5
+CPU-B CPU-F 8
+CPU-C CPU-D 3
+CPU-C CPU-E 6
+CPU-C CPU-G 9
+CPU-D CPU-F 4
+CPU-D CPU-G 7
+CPU-E CPU-F 2
+CPU-E CPU-H 5
+CPU-F CPU-G 3
+CPU-F CPU-I 6
+CPU-G CPU-J 4
+CPU-H CPU-I 3
+CPU-H CPU-K 7
+CPU-I CPU-J 2
+CPU-J CPU-K 5
