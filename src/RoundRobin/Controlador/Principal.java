@@ -209,7 +209,19 @@ public class Principal {
             System.out.println("\nRed cargada correctamente:");
             grafo.imprimirListaAdyacencia();
 
-            MenuGrafo menu = new MenuGrafo(grafo, scanner);
+            String origen = lector.getOrigen();
+
+            if (origen == null || origen.trim().isEmpty()) {
+                System.out.println("El archivo no define un origen.");
+                return;
+            }
+
+            if (!grafo.existeNodo(origen)) {
+                System.out.println("El origen indicado no existe en el grafo.");
+                return;
+            }
+
+            MenuGrafo menu = new MenuGrafo(grafo, scanner, origen);
             menu.mostrarMenu();
 
         } catch (IOException | IllegalArgumentException e) {

@@ -8,7 +8,6 @@ import java.util.*;
  * <p>Cada vértice es un {@link NodoCPU}: un núcleo físico con su propia cola
  * circular de procesos. Cada arista representa un canal de comunicación directa
  * entre dos núcleos, con un peso que indica la latencia del enlace en ms.</p>
- *
  * <p>La estructura interna es una <b>lista de adyacencia</b> implementada como
  * {@code HashMap<String, List<Arista>>}, donde la clave es el id del núcleo
  * origen y el valor es la lista de aristas que salen de él. Esta elección

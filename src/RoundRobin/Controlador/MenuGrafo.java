@@ -1,3 +1,4 @@
+
 package RoundRobin.Controlador;
 
 import RoundRobin.Estructuras.GrafoRed;
@@ -10,23 +11,26 @@ public class MenuGrafo {
 
     private Scanner scanner;
     private GrafoRed grafo;
+    private String origen;
 
-    public MenuGrafo(GrafoRed grafo, Scanner scanner) {
-    this.grafo = grafo;
-    this.scanner = scanner;
-}
+    public MenuGrafo(GrafoRed grafo, Scanner scanner, String origen) {
+        this.grafo = grafo;
+        this.scanner = scanner;
+        this.origen = origen;
+    }
 
     /**
-     *Menu de opciones 
+     * Menú de opciones
      */
     public void mostrarMenu() {
 
         int opcion;
 
         do {
-            System.out.println("\n================================");
             System.out.println("       MENU DE LA RED (estructuras de datos)");
             System.out.println("================================");
+            System.out.println("Origen configurado: " + origen);
+            System.out.println("--------------------------------");
             System.out.println("1. Ver matriz de adyacencia");
             System.out.println("2. Ver grados y conexidad");
             System.out.println("3. Recorrido BFS");
@@ -85,30 +89,24 @@ public class MenuGrafo {
 
     private void ejecutarBFS() {
 
-        System.out.println("\n--- RECORRIDO BFS ---");
-
-        System.out.print("Ingrese la CPU de origen: ");
-        String origen = scanner.nextLine().trim();
+        System.out.println("\n << RECORRIDO BFS >>");
+        System.out.println("CPU de origen: " + origen);
 
         grafo.bfs(origen);
     }
 
     private void ejecutarDFS() {
 
-        System.out.println("\n--- RECORRIDO DFS ---");
-
-        System.out.print("Ingrese la CPU de origen: ");
-        String origen = scanner.nextLine().trim();
+        System.out.println("\n << RECORRIDO DFS >>");
+        System.out.println("CPU de origen: " + origen);
 
         grafo.dfs(origen);
     }
 
     private void ejecutarDijkstra() {
 
-        System.out.println("\n--- ALGORITMO DIJKSTRA ---");
-
-        System.out.print("Ingrese la CPU de origen: ");
-        String origen = scanner.nextLine().trim();
+        System.out.println("\n << ALGORITMO DIJKSTRA >>");
+        System.out.println("CPU de origen: " + origen);
 
         grafo.dijkstra(origen);
     }
